@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VSEC-03 Plumbing Viva | Ch. 4–6</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --bg: #f4f1ea;
+    --white: #ffffff;
+    --accent: #c84b2f;
+    --accent2: #1a4fa8;
+    --accent3: #1d7a4e;
+    --muted: #6b6860;
+    --border: #d4cfc5;
+    --tag-bg: #ece8df;
+    --highlight: #fff3cd;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    background: var(--ink);
+    color: var(--white);
+    padding: 40px 32px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: 0; right: 0;
+    width: 300px; height: 100%;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent, transparent 8px,
+      rgba(255,255,255,0.03) 8px, rgba(255,255,255,0.03) 9px
+    );
+  }
+  .hero-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .hero p {
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    max-width: 520px;
+  }
+  .chapter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .chapter-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: rgba(255,255,255,0.1);
+    color: var(--white);
+    padding: 6px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .chapter-tab:hover, .chapter-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+  /* ── CHAPTER SECTION ── */
+  .chapter-section { display: none; }
+  .chapter-section.active { display: block; }
+
+  .chapter-header {
+    display: flex; align-items: baseline; gap: 16px;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 12px;
+    margin-bottom: 28px;
+  }
+  .chapter-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .chapter-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+  .grid-full { margin-bottom: 16px; }
+
+  @media(max-width: 700px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 18px 20px;
+  }
+  .card.red { border-top: 4px solid var(--accent); }
+  .card.blue { border-top: 4px solid var(--accent2); }
+  .card.green { border-top: 4px solid var(--accent3); }
+  .card.amber { border-top: 4px solid #c27c0e; }
+  .card.dark { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .card.dark .card-title { color: var(--accent); }
+  .card.dark li, .card.dark p { color: rgba(255,255,255,0.85); }
+  .card.highlight-box { background: #fff8f0; border: 1.5px solid var(--accent); }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .card-title.big {
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+
+  /* ── LISTS ── */
+  ul { list-style: none; padding: 0; }
+  ul li {
+    padding: 4px 0 4px 18px;
+    position: relative;
+    font-size: 13px;
+    border-bottom: 0.5px solid var(--tag-bg);
+  }
+  ul li:last-child { border-bottom: none; }
+  ul li::before {
+    content: '→';
+    position: absolute; left: 0;
+    color: var(--accent);
+    font-size: 11px;
+    top: 5px;
+  }
+
+  /* ── DEFINITION TABLE ── */
+  .def-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .def-table tr { border-bottom: 0.5px solid var(--border); }
+  .def-table tr:last-child { border-bottom: none; }
+  .def-table td { padding: 7px 8px 7px 0; vertical-align: top; }
+  .def-table td:first-child {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--accent2);
+    width: 38%;
+    padding-right: 12px;
+  }
+
+  /* ── NUMBER PILL ── */
+  .pill {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 6px;
+    font-weight: 500;
+  }
+  .pill.blue { background: var(--accent2); }
+  .pill.green { background: var(--accent3); }
+  .pill.amber { background: #c27c0e; }
+
+  /* ── FORMULA BOX ── */
+  .formula-box {
+    background: var(--ink);
+    color: #f9c74f;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 14px 18px;
+    border-radius: 2px;
+    margin: 12px 0;
+    letter-spacing: 0.03em;
+  }
+  .formula-box .formula-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .steps { counter-reset: step; }
+  .step-item {
+    display: flex;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--tag-bg);
+    align-items: flex-start;
+  }
+  .step-item:last-child { border-bottom: none; }
+  .step-num {
+    background: var(--accent);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-num.blue { background: var(--accent2); }
+  .step-num.green { background: var(--accent3); }
+  .step-text { font-size: 13px; line-height: 1.5; }
+  .step-text strong { font-weight: 600; display: block; margin-bottom: 2px; }
+
+  /* ── TAG ── */
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    margin: 3px 3px 3px 0;
+  }
+
+  /* ── ALERT ── */
+  .alert {
+    padding: 12px 16px;
+    border-left: 4px solid var(--accent);
+    background: #fff0ec;
+    font-size: 13px;
+    border-radius: 0 2px 2px 0;
+    margin: 12px 0;
+  }
+  .alert.blue { border-color: var(--accent2); background: #eef4ff; }
+  .alert.green { border-color: var(--accent3); background: #edfcf4; }
+  .alert strong { font-weight: 600; }
+
+  /* ── TWO-COL LIST ── */
+  .two-col-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .two-col-list li { font-size: 12.5px; }
+  @media(max-width:500px){ .two-col-list { grid-template-columns: 1fr; } }
+
+  /* ── SECTION DIVIDER ── */
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin: 28px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: var(--border);
+  }
+
+  /* ── TABLE ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    background: var(--ink);
+    color: var(--white);
+    text-align: left;
+    padding: 7px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .data-table td { padding: 6px 10px; border-bottom: 0.5px solid var(--border); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:nth-child(even) td { background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-sub">VSEC-03 · Plumbing Practices · Viva Prep</div>
+  <h1>CHEAT SHEET<br>CH. 4 · 5 · 6</h1>
+  <p>Drainage · Sanitary & Storm · Pumps & Construction Management — to-the-point, examiner-ready.</p>
+  <div class="chapter-tabs">
+    <a class="chapter-tab active" href="#" onclick="showChap('c4',this);return false;">CH 4 — Drainage & DWV</a>
+    <a class="chapter-tab" href="#" onclick="showChap('c5',this);return false;">CH 5 — Sanitary & Storm</a>
+    <a class="chapter-tab" href="#" onclick="showChap('c6',this);return false;">CH 6 — Pumps & Construction Mgmt</a>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════
+     CHAPTER 4 – TRAPS, INTERCEPTORS, INDIRECT WASTE,
+                 VENTS, DWV SYSTEM
+══════════════════════════════════════════════════════════ -->
+<section class="chapter-section active" id="c4">
+  <div class="chapter-header">
+    <div class="chapter-num">4</div>
+    <div class="chapter-title">Traps, Interceptors, Indirect Waste, Vents & DWV</div>
+  </div>
+
+  <!-- KEY DEFINITIONS -->
+  <div class="section-label">Key Definitions</div>
+  <div class="grid-full">
+    <div class="card">
+      <div class="card-title">Critical Terms — Know These Cold</div>
+      <table class="def-table">
+        <tr><td>TRAP</td><td>Fitting that provides a <strong>water seal</strong> (51–102mm deep) to prevent backflow of sewer gas without impeding waste flow. Every fixture needs one.</td></tr>
+        <tr><td>CROWN WEIR</td><td>Highest point of bottom of internal trap surface. Trap seal measured from crown weir to top of dip.</td></tr>
+        <tr><td>DIP</td><td>Lowest portion of inside top surface of the channel through the trap.</td></tr>
+        <tr><td>TRAP SEAL</td><td>Vertical depth of liquid retained — minimum <strong>51 mm</strong>, max <strong>102 mm</strong>.</td></tr>
+        <tr><td>INTERCEPTOR</td><td>Device to separate and retain deleterious matter (grease, sand, oil) from normal wastes.</td></tr>
+        <tr><td>DWV SYSTEM</td><td>Drainage + Waste + Vent — the complete building drainage network.</td></tr>
+        <tr><td>INDIRECT WASTE</td><td>Fixture/appliance drains that do NOT connect directly to soil/waste/vent pipes — separated by air gap or airbreak.</td></tr>
+        <tr><td>AIRGAP</td><td>Unobstructed vertical distance between pipe outlet and flood rim of receptor (min. 2× pipe diameter or 25mm, whichever greater).</td></tr>
+        <tr><td>AIRBREAK</td><td>Physical separation with at least <strong>25mm</strong> between pipe inlet and receptor.</td></tr>
+        <tr><td>FOG DISPOSAL</td><td>Fats, Oils & Grease disposal — requires grease interceptor in commercial kitchens.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- TRAP TYPES & LOSS OF SEAL -->
+  <div class="grid-2">
+    <div class="card red">
+      <div class="card-title">Types of Traps (Residential)</div>
+      <div class="steps">
+        <div class="step-item"><div class="step-num">P</div><div class="step-text"><strong>P-Trap</strong>Most common. Used at lavatories, kitchen sinks, floor drains, scuppers.</div></div>
+        <div class="step-item"><div class="step-num" style="background:#c27c0e">D</div><div class="step-text"><strong>Drum Trap</strong>Cylindrical. Used at bathtubs and bidets. Installed under bathroom floor.</div></div>
+        <div class="step-item"><div class="step-num blue">H</div><div class="step-text"><strong>House/Running Trap</strong>Prevents air circulation between building drain and sewer. Installed at base of building drain.</div></div>
+        <div class="step-item"><div class="step-num green">G</div><div class="step-text"><strong>Grease Trap/Interceptor</strong>Removes fats/oils from wastewater. NOT required for individual dwellings.</div></div>
+      </div>
+    </div>
+    <div class="card blue">
+      <div class="card-title">5 Causes of Trap Seal Loss — SEBCW</div>
+      <div class="steps">
+        <div class="step-item"><div class="step-num">S</div><div class="step-text"><strong>Siphonage</strong>Liquid withdrawn by suction from flowing waste. Two types: (a) Direct Self-siphonage, (b) Indirect/Momentum siphonage.</div></div>
+        <div class="step-item"><div class="step-num">E</div><div class="step-text"><strong>Evaporation</strong>Fixture unused for long time. Deep seal traps help but may clog.</div></div>
+        <div class="step-item"><div class="step-num">B</div><div class="step-text"><strong>Back Pressure</strong>Excessive pressure at lowest branch blows out trap seal.</div></div>
+        <div class="step-item"><div class="step-num">C</div><div class="step-text"><strong>Capillary Attraction</strong>String/rag in trap wicks water out by capillary action.</div></div>
+        <div class="step-item"><div class="step-num">W</div><div class="step-text"><strong>Wind Effects</strong>Strong wind through vent system forces water out of trap.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DWV SUB-SYSTEMS -->
+  <div class="section-label">DWV System Components</div>
+  <div class="grid-3">
+    <div class="card red">
+      <div class="card-title">Soil Drainage</div>
+      <ul>
+        <li>Carries discharge from <strong>water closets &amp; urinals</strong> (fecal matter)</li>
+        <li>Also receives other fixtures connected to it</li>
+        <li>Soil stack: vertical soil pipe</li>
+        <li>Min. pipe: 100mm Ø (4")</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <div class="card-title">Waste/Sanitary Drainage</div>
+      <ul>
+        <li>Liquid waste <strong>free of fecal matter</strong></li>
+        <li>From sinks, lavatories, bathtubs, showers</li>
+        <li>Waste stack: vertical waste pipe</li>
+        <li>Waste pipe: carries only wastewater</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <div class="card-title">Storm Drainage</div>
+      <ul>
+        <li>Clear water only — rain, surface runoff, ground water</li>
+        <li>NO sanitary waste allowed</li>
+        <li>Leaders/downspouts → catch basin → storm drain</li>
+        <li>Roof gutter → downspout (conductor)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- VENT TYPES -->
+  <div class="section-label">10 Types of Vents — Must Know All</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title big">Vent Types (Part 1)</div>
+      <table class="def-table">
+        <tr><td>Main Soil &amp; Waste Vent</td><td>Soil stack portion <em>above</em> highest fixture branch, extending through roof.</td></tr>
+        <tr><td>Main Vent</td><td>Principal collecting vent line to which branch vents connect.</td></tr>
+        <tr><td>Individual / Back Vent</td><td>Serves a <em>single</em> fixture. Most common individual protection.</td></tr>
+        <tr><td>Unit Vent</td><td>Ventilates <em>two similar fixtures</em> on opposite sides of a partition.</td></tr>
+        <tr><td>Circuit / Loop Vent</td><td>Ventilates <em>two or more</em> fixture traps discharging into one soil/waste branch.</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title big">Vent Types (Part 2)</div>
+      <table class="def-table">
+        <tr><td>Relief Vent</td><td>Allows additional air circulation; eliminates back pressure at lowest branch.</td></tr>
+        <tr><td>Yoke Vent</td><td>Connects vent stack to soil/waste stack at every 5th floor in high-rise.</td></tr>
+        <tr><td>Wet Vent</td><td>Pipe that serves as both drain for one fixture AND vent for another.</td></tr>
+        <tr><td>Looped Vent</td><td>Loop arrangement of back vent; used where fixture is remote from stack.</td></tr>
+        <tr><td>Utility Vent</td><td>Used for less critical fixtures like floor drains.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- INDIRECT WASTE EQUIPMENT -->
+  <div class="section-label">Indirect Waste — NPC 1999 Sec. 810</div>
+  <div class="grid-2">
+    <div class="card amber">
+      <div class="card-title">Equipment Requiring AIRBREAK (min. 25mm)</div>
+      <ul class="two-col-list">
+        <li>Evaporative cooler</li>
+        <li>Air washer</li>
+        <li>Air conditioner</li>
+        <li>Cold storage room</li>
+        <li>Refrigerator</li>
+        <li>Cooling counter</li>
+      </ul>
+      <div class="alert" style="margin-top:10px">Cooling/AC equipment = <strong>airbreak</strong> (25mm min)</div>
+    </div>
+    <div class="card red">
+      <div class="card-title">Equipment Requiring Full AIRGAP</div>
+      <ul class="two-col-list">
+        <li>Food &amp; drink storage</li>
+        <li>Dishwashing sink</li>
+        <li>Culinary sinks</li>
+        <li>Food prep rooms</li>
+      </ul>
+      <div class="alert" style="margin-top:10px"><strong>Food equipment = full AIRGAP</strong> (2× pipe dia. or 25mm, whichever greater)</div>
+    </div>
+  </div>
+
+  <!-- GREASE TRAP SIZING -->
+  <div class="section-label">Grease Interceptor Sizing (Sec. 1011–1013 NPC 1999)</div>
+  <div class="grid-full">
+    <div class="card dark">
+      <div class="card-title">Formula 1 — Scheduled Meals (Cafeteria, Hospital, School)</div>
+      <div class="formula-box">
+        <div class="formula-label">Grease trap capacity (gallons)</div>
+        C = M × W × R × F
+      </div>
+      <table class="def-table" style="color:rgba(255,255,255,0.8)">
+        <tr><td style="color:#f9c74f">M</td><td>Number of meals at peak hour</td></tr>
+        <tr><td style="color:#f9c74f">W</td><td>Waste flow rate: with dishwasher=6gal, without=5gal, single service=2gal, food waste disposer=1gal, hospital=25gal/bed/day</td></tr>
+        <tr><td style="color:#f9c74f">R</td><td>Hours of operation (peak)</td></tr>
+        <tr><td style="color:#f9c74f">F</td><td>Storage factor: 8hr=1, 18hr=2, 24hr=3; single service=1.5</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Formula 2 — Non-Scheduled (Restaurants, Fast Food)</div>
+      <div class="formula-box" style="background:#1a4fa8; color:#fff">
+        C = 0.09 (K × N × H × G × S)
+      </div>
+      <table class="def-table">
+        <tr><td>K (Facility)</td><td>Freeway=1.25, Recreation=1.00, Main highway=0.80, Lesser road=0.5</td></tr>
+        <tr><td>N</td><td>Number of seats</td></tr>
+        <tr><td>H</td><td>Hours per day operation</td></tr>
+        <tr><td>G</td><td>Waste flow rate (general: 4.5 gal)</td></tr>
+        <tr><td>S (Sewage)</td><td>To public sewer=1.7, other disposal=2.5</td></tr>
+      </table>
+    </div>
+    <div class="card highlight-box">
+      <div class="card-title big">⚡ Sample Problem (Exam Ready)</div>
+      <p style="font-size:13px;margin-bottom:8px">Canteen: 50 meals/day, open 11am–7pm (8hrs), no dishwasher.</p>
+      <div class="formula-box" style="background:#c84b2f;color:#fff;font-size:12px">
+        C = 50 × 5 × 2.5 × 1 = 625 gallons<br>
+        V = 625 ÷ 264 = <strong>2.37 m³</strong>
+      </div>
+      <ul>
+        <li>M=50 meals, W=5 (no dishwasher), R=2.5hrs peak, F=1 (8hr operation)</li>
+        <li>1 cubic meter = <strong>264 gallons</strong></li>
+        <li>NOT required for individual dwellings (Sec. 1011.1)</li>
+        <li>NO food waste disposal unit into grease trap (Sec. 1013)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DRAINAGE SYSTEM GENERAL REQUIREMENTS -->
+  <div class="section-label">General Requirements — Properly Designed Drainage System</div>
+  <div class="card">
+    <div class="card-title big">7 Key Requirements</div>
+    <div class="steps">
+      <div class="step-item"><div class="step-num blue">a</div><div class="step-text">Piping must be <strong>airtight, gas-tight and watertight.</strong></div></div>
+      <div class="step-item"><div class="step-num blue">b</div><div class="step-text">Each fixture (except integral traps) must have a separate <strong>water-seal trap.</strong></div></div>
+      <div class="step-item"><div class="step-num blue">c</div><div class="step-text">Each trap must have <strong>vent pipes</strong> to protect against siphonage &amp; back pressure.</div></div>
+      <div class="step-item"><div class="step-num blue">d</div><div class="step-text">Cleanouts required: upper end of every horizontal run; every change of direction &gt;22.5°; within <strong>1.5m</strong> inside property line; every <strong>15m</strong> of horizontal run.</div></div>
+      <div class="step-item"><div class="step-num blue">e</div><div class="step-text">Horizontal piping: minimum grade of <strong>2% (2 cm/meter)</strong> toward disposal point.</div></div>
+      <div class="step-item"><div class="step-num blue">f</div><div class="step-text">Horizontal piping supported and anchored at max <strong>3-meter intervals.</strong></div></div>
+      <div class="step-item"><div class="step-num blue">g</div><div class="step-text">Vertical piping secured at close intervals; stacks supported at bases.</div></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     CHAPTER 5 – SANITARY DRAINAGE & STORM DRAINAGE
+                 GRAY WATER, SEWAGE DISPOSAL
+══════════════════════════════════════════════════════════ -->
+<section class="chapter-section" id="c5">
+  <div class="chapter-header">
+    <div class="chapter-num">5</div>
+    <div class="chapter-title">Sanitary Drainage, Storm Drainage & Gray Water</div>
+  </div>
+
+  <!-- DRAINAGE TYPES -->
+  <div class="section-label">Drainage System Types</div>
+  <div class="grid-3">
+    <div class="card red">
+      <div class="card-title">ONE-PIPE System</div>
+      <ul>
+        <li>Soil &amp; waste combined in <strong>single stack</strong></li>
+        <li>Simpler, economical</li>
+        <li>Higher risk of siphonage</li>
+        <li>Requires careful vent design</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <div class="card-title">TWO-PIPE System</div>
+      <ul>
+        <li>Separate stacks for soil &amp; waste</li>
+        <li>Better sanitary protection</li>
+        <li>More expensive to install</li>
+        <li>Preferred for larger buildings</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <div class="card-title">SINGLE STACK System</div>
+      <ul>
+        <li>One pipe for all drainage + venting</li>
+        <li>All fixtures on same stack</li>
+        <li>Special single-stack fittings required</li>
+        <li>Used in high-rise buildings</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PIPE SIZING -->
+  <div class="section-label">Drainage Flow & DFU — Hydraulic Jump & Pipe Sizing</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title big">Key Hydraulic Concepts</div>
+      <table class="def-table">
+        <tr><td>HYDRAULIC JUMP</td><td>Sudden rise in liquid depth when fast flow meets slow in a horizontal pipe. Causes positive pressure fluctuations.</td></tr>
+        <tr><td>DFU (Drainage Fixture Unit)</td><td>Unit measuring probable discharge into drainage system. Used to size drainage pipes.</td></tr>
+        <tr><td>Fixture Branch</td><td>Drain pipe from fixture trap to soil/waste stack or building drain.</td></tr>
+        <tr><td>Grade (slope)</td><td>Min <strong>2% = 1:50</strong> (2cm per meter) for pipes &lt;75mm. Larger pipes: 1% acceptable.</td></tr>
+        <tr><td>Stack Loading</td><td>Combined DFU load on vertical stack. Determines stack size.</td></tr>
+        <tr><td>T&amp;Y Fittings</td><td>Sanitary tee (T) &amp; wye (Y) — direct horizontal to vertical connections. WYE preferred at base.</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title big">DFU Quick Reference Table</div>
+      <table class="data-table">
+        <tr><th>Fixture</th><th>Trap Ø</th><th>DFU (Pvt)</th><th>DFU (Pub)</th></tr>
+        <tr><td>Water closet</td><td>76mm</td><td>4</td><td>6</td></tr>
+        <tr><td>Lavatory</td><td>38mm</td><td>1</td><td>2 (set)</td></tr>
+        <tr><td>Bathtub/Shower</td><td>38mm</td><td>2</td><td>2</td></tr>
+        <tr><td>Kitchen sink (res.)</td><td>38mm</td><td>2</td><td>2</td></tr>
+        <tr><td>Urinal (wall/stall)</td><td>51mm</td><td>—</td><td>6</td></tr>
+        <tr><td>Floor drain</td><td>51mm</td><td>2</td><td>2</td></tr>
+        <tr><td>Laundry tub</td><td>38mm</td><td>2</td><td>—</td></tr>
+        <tr><td>Drinking fountain</td><td>31mm</td><td>1</td><td>1</td></tr>
+        <tr><td>Service/slop sink</td><td>51mm</td><td>3</td><td>3</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- CLEANOUTS -->
+  <div class="section-label">Cleanouts — Location Rules</div>
+  <div class="card blue">
+    <div class="card-title big">When &amp; Where to Place Cleanouts</div>
+    <div class="steps">
+      <div class="step-item"><div class="step-num blue">1</div><div class="step-text">At the <strong>upper end</strong> of every horizontal soil or waste pipe.</div></div>
+      <div class="step-item"><div class="step-num blue">2</div><div class="step-text">At every <strong>change of horizontal direction</strong> not less than 22.5°.</div></div>
+      <div class="step-item"><div class="step-num blue">3</div><div class="step-text">Within <strong>1.5 m (5 ft)</strong> inside property line before house sewer connection.</div></div>
+      <div class="step-item"><div class="step-num blue">4</div><div class="step-text">At every <strong>15 m (50 ft)</strong> of horizontal run of soil or waste pipe.</div></div>
+      <div class="step-item"><div class="step-num blue">5</div><div class="step-text">At base of every <strong>soil or waste stack</strong>.</div></div>
+    </div>
+  </div>
+
+  <!-- SEWERS & SUMP -->
+  <div class="section-label">Building Sewer, Sump & Sewage Disposal</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title big">Building Drain vs. Building Sewer</div>
+      <table class="def-table">
+        <tr><td>Building Drain (House Drain)</td><td>Lowest horizontal piping <em>inside</em> the building. Receives all soil, waste &amp; drain pipes inside. Extends to <strong>0.60 m outside</strong> foundation wall.</td></tr>
+        <tr><td>Building Sewer (House Sewer)</td><td>Starts <strong>0.60 m from outside face</strong> of foundation. Goes to public sewer, septic, or disposal. Min diameter: <strong>150mm</strong>. Not smaller than house drain.</td></tr>
+        <tr><td>Soil Pipe</td><td>Conveys discharge of WC, urinals &amp; similar fixtures to building drain/sewer.</td></tr>
+        <tr><td>Waste Pipe</td><td>Carries only waste water — NO fecal matter.</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title big">Sumps &amp; Sewage Ejectors</div>
+      <table class="def-table">
+        <tr><td>Sump Pit</td><td>Pit or tank receiving drainage from fixtures below public sewer level. Must be covered &amp; vented.</td></tr>
+        <tr><td>Sewage Ejector</td><td>Pump that raises sewage from below-grade fixtures to building drain above sewer level.</td></tr>
+        <tr><td>Check Valve</td><td>Required on ejector discharge to prevent backflow.</td></tr>
+        <tr><td>Vent</td><td>Sump must be vented separately — do NOT connect to regular drain vent system.</td></tr>
+      </table>
+      <div class="alert blue">Fixtures below street sewer level require <strong>sewage ejector system.</strong></div>
+    </div>
+  </div>
+
+  <!-- SEPTIC TANK -->
+  <div class="section-label">Septic Tank — Private Sewage Disposal System</div>
+  <div class="grid-2">
+    <div class="card red">
+      <div class="card-title">How a Septic Tank Works</div>
+      <div class="steps">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>Sewage enters</strong> septic tank from building sewer.</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>Separation:</strong> solids settle to bottom (sludge); grease floats to top (scum); clarified liquid in middle (effluent).</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>Digestion:</strong> anaerobic bacteria digest organic solids.</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>Effluent</strong> flows to leaching chamber / disposal field.</div></div>
+        <div class="step-item"><div class="step-num">5</div><div class="step-text"><strong>Soil absorption</strong> completes treatment via percolation.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title big">Septic System Sizing</div>
+      <div class="formula-box" style="background:#1d7a4e;color:#fff;font-size:12px">
+        Use 6 DFU per water closet when computing septic tank size
+      </div>
+      <table class="def-table">
+        <tr><td>Min. liquid capacity</td><td>750 liters for 1–2 bedrooms; +200L per additional bedroom</td></tr>
+        <tr><td>Inlet &amp; outlet</td><td>Submerged inlet pipe; outlet tee extends into effluent zone</td></tr>
+        <tr><td>Access</td><td>Must have removable covers for inspection &amp; cleaning</td></tr>
+        <tr><td>Distance from well</td><td>Min. 15m (50 ft) from any water supply</td></tr>
+      </table>
+      <div class="alert green">
+        <strong>Rule of thumb:</strong> Disposal field area &lt; 70 m². If exceeds, revise trench spacing.
+      </div>
+    </div>
+  </div>
+
+  <!-- SOIL PERCOLATION -->
+  <div class="section-label">Soil Percolation Rate → Disposal Field Sizing</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Percolation Rate vs Application Rate</div>
+      <table class="data-table">
+        <tr><th>Perc Rate (min/25mm)</th><th>Application Rate (GPD/m²)</th></tr>
+        <tr><td>1 minute</td><td>57.00</td></tr>
+        <tr><td>2 minutes</td><td>46.22</td></tr>
+        <tr><td>5 minutes</td><td>34.40</td></tr>
+        <tr><td>10 minutes</td><td>24.73</td></tr>
+        <tr><td>15 minutes</td><td>19.35</td></tr>
+        <tr><td>30 minutes</td><td>11.83</td></tr>
+        <tr><td>60 minutes</td><td>5.34</td></tr>
+      </table>
+    </div>
+    <div class="card highlight-box">
+      <div class="card-title big">Disposal Field Area Formula</div>
+      <div class="formula-box" style="background:#c84b2f;color:#fff;font-size:12px">
+        Area = (1.50 + L + 1.50) × 1.80 m
+        <br><br>
+        Trench spacing: D = Target Area ÷ 28 m
+      </div>
+      <p style="font-size:12.5px;margin-top:8px">Where L = length of distribution trench. Trench width = 1.80m including soil allowance of 1.5m each side.</p>
+      <p style="font-size:12.5px;margin-top:6px">Area must be <strong>less than 70 m²</strong> (rule of thumb). If greater, revise spacing.</p>
+    </div>
+  </div>
+
+  <!-- GRAY WATER -->
+  <div class="section-label">Gray Water System</div>
+  <div class="grid-2">
+    <div class="card green">
+      <div class="card-title">Gray Water — Definition & Sources</div>
+      <ul>
+        <li>Water from lavatories, sinks, laundry trays &amp; showers</li>
+        <li>Contains <strong>minor pollutants</strong> — NOT fecal matter</li>
+        <li>Separate from <strong>black water</strong> (WC &amp; urinals — major pollutants)</li>
+        <li>Can be reclaimed after treatment for flushing, irrigation</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Gray Water System Components</div>
+      <table class="def-table">
+        <tr><td>Collection</td><td>Separate drainage from approved fixtures (lavatories, showers, laundry)</td></tr>
+        <tr><td>Holding Tank</td><td>Storage &amp; settling before treatment or reuse</td></tr>
+        <tr><td>Treatment</td><td>Soil absorption, filtration or approved package treatment</td></tr>
+        <tr><td>Identification</td><td>All reclaimed water pipes must be clearly identified — different color/label</td></tr>
+        <tr><td>Cross-connection</td><td>Absolutely PROHIBITED between potable water &amp; gray water systems</td></tr>
+        <tr><td>Approved uses</td><td>Toilet flushing, sub-surface irrigation, cooling tower makeup</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- STORM DRAINAGE -->
+  <div class="section-label">Storm Drainage System</div>
+  <div class="grid-2">
+    <div class="card blue">
+      <div class="card-title">Storm Drainage Components</div>
+      <table class="def-table">
+        <tr><td>Roof Gutter</td><td>Water collector at eaves of building</td></tr>
+        <tr><td>Downspout / Leader</td><td>Vertical pipe conveying rainwater. Also called conductor or rain leader.</td></tr>
+        <tr><td>Catch Basin (CB)</td><td>Receptor where liquids are retained to allow solids to settle before entering drainage.</td></tr>
+        <tr><td>Storm Drain (SD)</td><td>Receives storm water, clear rainwater, surface waste.</td></tr>
+        <tr><td>Area Drain</td><td>Inlet for collecting surface/ground water at low points (courtyards, parking).</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Downspout Materials by Building Type</div>
+      <div class="steps">
+        <div class="step-item"><div class="step-num blue">INT</div><div class="step-text"><strong>Interior Downspouts:</strong> Cast iron, GI, brass, copper, lead, Sched 40 ABS, Series 1000 PVC DWV</div></div>
+        <div class="step-item"><div class="step-num blue">MED</div><div class="step-text"><strong>Medium Height Bldg:</strong> GI sch.30, CISP SW, Copper DWV, ABS/PVC DWV</div></div>
+        <div class="step-item"><div class="step-num blue">EXT</div><div class="step-text"><strong>Exterior/Low-rise:</strong> 26 GA galvanized sheet metal with steel pipe or cast iron at lowest section to catch basin</div></div>
+        <div class="step-item"><div class="step-num blue">HI</div><div class="step-text"><strong>High-Rise:</strong> Stronger pipe materials to resist high hydrostatic pressure</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     CHAPTER 6 – PUMPS, HPS, CONSTRUCTION MANAGEMENT
+══════════════════════════════════════════════════════════ -->
+<section class="chapter-section" id="c6">
+  <div class="chapter-header">
+    <div class="chapter-num">6</div>
+    <div class="chapter-title">Pumps, HPS &amp; Construction Management</div>
+  </div>
+
+  <!-- PUMP TYPES -->
+  <div class="section-label">Types of Pumps</div>
+  <div class="grid-3">
+    <div class="card red">
+      <div class="card-title">Centrifugal Pumps</div>
+      <ul>
+        <li>Most common in plumbing</li>
+        <li>Rotary impeller creates centrifugal force</li>
+        <li>Used for water supply &amp; pressure boosting</li>
+        <li>Types: end-suction, split-case, turbine</li>
+        <li>Priming required (except self-priming type)</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <div class="card-title">Submersible Pumps</div>
+      <ul>
+        <li>Motor + pump submerged in fluid</li>
+        <li>Used for deep well, sump pits, sewage</li>
+        <li>No priming required</li>
+        <li>Hermetically sealed motor</li>
+        <li>Efficient — reduced friction losses</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <div class="card-title">Reciprocating Pumps</div>
+      <ul>
+        <li>Piston/plunger action — positive displacement</li>
+        <li>High pressure applications</li>
+        <li>Used for metering chemical dosing</li>
+        <li>Self-priming</li>
+        <li>Pulsating flow — needs dampener</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card amber">
+      <div class="card-title">Booster Pumps — Pressure Boosting System</div>
+      <ul>
+        <li>Increase system pressure where mains pressure is insufficient</li>
+        <li>Typically centrifugal, multi-stage</li>
+        <li>Controlled by <strong>pressure switch</strong> or <strong>variable speed drive (VSD)</strong></li>
+        <li>Hydropneumatic tank maintains pressure between pump cycles</li>
+        <li>Required when building height > pressure available from mains</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Heat Exchangers &amp; Hot Water Pumps</div>
+      <ul>
+        <li>Circulating pump maintains hot water temperature in distribution loop</li>
+        <li>Prevents long wait for hot water at fixtures</li>
+        <li>Plate-type or shell-and-tube heat exchangers</li>
+        <li>Used in large buildings for hot water generation</li>
+        <li>Thermostatic mixing valve (TMV) blends hot &amp; cold to safe temperature</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- HYDROPNEUMATIC SYSTEM -->
+  <div class="section-label">Hydropneumatic (HPS) / Pressure Boosting Systems</div>
+  <div class="grid-2">
+    <div class="card dark">
+      <div class="card-title">HPS System Components</div>
+      <div class="steps">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>Pressure Tank (Hydropneumatic)</strong> — stores water under compressed air to maintain system pressure. Usually 1/3 water, 2/3 air.</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>Pressure Switch</strong> — starts pump at low-pressure setpoint (cut-in), stops at high-pressure setpoint (cut-out).</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>Check Valve</strong> — prevents backflow from tank into pump during off-cycle.</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>Relief Valve</strong> — safety device to prevent over-pressure conditions.</div></div>
+        <div class="step-item"><div class="step-num">5</div><div class="step-text"><strong>Air Volume Control</strong> — maintains proper air-water ratio inside tank.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title big">HPS vs. Overhead Tank</div>
+      <table class="def-table">
+        <tr><td>HPS Advantage</td><td>Eliminates overhead tank; provides constant pressure; space-saving; no contamination risk from open tank</td></tr>
+        <tr><td>HPS Disadvantage</td><td>Power-dependent; pump failure = no water; higher energy use</td></tr>
+        <tr><td>Overhead Tank</td><td>Gravity-fed; simple; power outage resilience; requires elevated structure</td></tr>
+        <tr><td>Tank-less Booster</td><td>Variable speed pump + pressure sensor — eliminates pressure tank; most energy-efficient modern system</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- CONSTRUCTION MANAGEMENT -->
+  <div class="section-label">Construction Management</div>
+  <div class="grid-2">
+    <div class="card red">
+      <div class="card-title">Organization &amp; Coordination</div>
+      <ul>
+        <li><strong>Inter-organization relations:</strong> Coordination between main contractor, plumbing contractor &amp; other trades</li>
+        <li><strong>Role of Engineer-in-Charge:</strong> Safety &amp; security; approving materials; issuing variation orders</li>
+        <li><strong>Working at heights &amp; confined spaces:</strong> Permits to work; safety harnesses; ventilation required</li>
+        <li><strong>Accident reporting:</strong> Incident reports submitted within 24hrs; near-miss records</li>
+        <li>Coordination with structural (pipe sleeves, penetrations), architectural (fixture placement), MEP (pipe routing)</li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <div class="card-title">Inventory &amp; Material Management</div>
+      <ul>
+        <li><strong>Ordering &amp; Stacking:</strong> First-in-first-out (FIFO); pipe stored horizontally; fittings in bins</li>
+        <li><strong>Record keeping:</strong> Delivery receipts; material test certs; issuance logs</li>
+        <li><strong>Measurement:</strong> Quantities verified against BOQ before installation</li>
+        <li><strong>Billing:</strong> Progress billing tied to work done (% completion)</li>
+        <li><strong>Time &amp; Cost Analysis:</strong> Planned vs. actual tracking; cost codes per system</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- BOQ & SPECIFICATIONS -->
+  <div class="section-label">Specifications, BOQ &amp; Cost Estimates</div>
+  <div class="grid-2">
+    <div class="card green">
+      <div class="card-title">Bill of Quantities (BOQ)</div>
+      <table class="def-table">
+        <tr><td>Takeoff</td><td>Measure all quantities from drawings — pipe lengths, fittings count, fixture count</td></tr>
+        <tr><td>Itemization</td><td>List by system: water supply, drainage, sanitary, hot water, storm drainage</td></tr>
+        <tr><td>Unit rates</td><td>Material + labor per unit; labor often quoted per linear meter (pipes) or per unit (fixtures)</td></tr>
+        <tr><td>Summary</td><td>Subtotal per system + overhead + profit + contingency (5–10%)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Specifications Writing — Key Contents</div>
+      <ul>
+        <li><strong>Scope of work</strong> — what is included/excluded</li>
+        <li><strong>Referenced standards</strong> — NBC 2016, NPC 1999, UIPC 2021</li>
+        <li><strong>Materials</strong> — approved pipe types, fittings, fixtures brands</li>
+        <li><strong>Workmanship</strong> — jointing methods, pressure testing requirements</li>
+        <li><strong>Testing &amp; commissioning</strong> — hydrostatic test pressures, durations</li>
+        <li><strong>Submittals</strong> — shop drawings, product data, operation manuals</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- BAR CHART / ACTIVITY SCHEDULE -->
+  <div class="section-label">Activity Schedule &amp; Bar Chart (Gantt)</div>
+  <div class="grid-full">
+    <div class="card">
+      <div class="card-title big">Construction Activity Sequence — Plumbing Works</div>
+      <div class="steps">
+        <div class="step-item"><div class="step-num green">1</div><div class="step-text"><strong>Underground rough-in</strong> — install building drain, house sewer, storm drain pipes before slab pour. Pressure test before concealing.</div></div>
+        <div class="step-item"><div class="step-num green">2</div><div class="step-text"><strong>Slab penetrations &amp; sleeves</strong> — place pipe sleeves, waterproofing at penetrations, set floor drain bodies in slab formwork.</div></div>
+        <div class="step-item"><div class="step-num green">3</div><div class="step-text"><strong>Rough-in (wall &amp; ceiling)</strong> — install soil stacks, waste stacks, vent stacks, water supply risers, hot water piping within walls/ceiling before plastering.</div></div>
+        <div class="step-item"><div class="step-num green">4</div><div class="step-text"><strong>Pressure testing</strong> — air or water test on drainage at 1.0 m water column; water supply at 1.5× operating pressure for minimum 2 hours before closing up.</div></div>
+        <div class="step-item"><div class="step-num green">5</div><div class="step-text"><strong>Fixture setting</strong> — install fixtures, connections &amp; trim after tiles/finishes complete. Water closets, lavatories, sinks, shower valves.</div></div>
+        <div class="step-item"><div class="step-num green">6</div><div class="step-text"><strong>Commissioning &amp; testing</strong> — flush tests, flow tests, check all isolating valves, functional test all fixtures. Document results.</div></div>
+        <div class="step-item"><div class="step-num green">7</div><div class="step-text"><strong>Inspection &amp; handover</strong> — final inspection by RMP (Registered Master Plumber); as-built drawings; O&amp;M manuals submitted.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY PIPE MATERIALS RECAP -->
+  <div class="section-label">Approved Materials — Quick Reference</div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Water Supply Pipes</div>
+      <div class="tag">GI (Galvanized Iron)</div>
+      <div class="tag">Copper</div>
+      <div class="tag">CPVC</div>
+      <div class="tag">PEX</div>
+      <div class="tag">Multilayer Composite</div>
+      <div class="tag">HDPE</div>
+      <div class="tag">uPVC (cold only)</div>
+      <p style="font-size:12px;margin-top:8px;color:var(--muted)">All supply pipes must withstand working pressure of system + safety factor. Hot water: min. 70°C rated.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Excreta Drainage Pipes</div>
+      <div class="tag">Cast Iron (CI)</div>
+      <div class="tag">Ductile Iron</div>
+      <div class="tag">GI (above ground only)</div>
+      <div class="tag">Lead</div>
+      <div class="tag">Copper / Brass</div>
+      <div class="tag">Series 1000 PVC DWV</div>
+      <div class="tag">Vitrified Clay (underground only)</div>
+      <p style="font-size:12px;margin-top:8px;color:var(--muted)">GI not for underground. Vitrified clay not above ground — min 300mm below finish grade.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Vent Pipes</div>
+      <div class="tag">Cast Iron</div>
+      <div class="tag">Ductile Cast Iron</div>
+      <div class="tag">GI Steel / Wrought Iron</div>
+      <div class="tag">Lead / Copper / Brass</div>
+      <div class="tag">Sched 40 ABS DWV</div>
+      <div class="tag">Series 1000 PVC DWV</div>
+      <p style="font-size:12px;margin-top:8px;color:var(--muted)">ABS &amp; PVC DWV in high-rise at discretion of RMP with owner consent.</p>
+    </div>
+  </div>
+
+  <!-- KEY EXAM NUMBERS -->
+  <div class="section-label">⚡ Critical Numbers — Examiner Favourites</div>
+  <div class="card dark">
+    <div class="card-title">Must-Know Numbers for Viva</div>
+    <div class="grid-2" style="margin:0">
+      <table class="def-table" style="color:rgba(255,255,255,0.85)">
+        <tr><td style="color:#f9c74f">Min pipe grade</td><td>2% = 2cm/m = 1:50</td></tr>
+        <tr><td style="color:#f9c74f">Pipe support spacing</td><td>Max 3 m horizontal</td></tr>
+        <tr><td style="color:#f9c74f">Cleanout — property line</td><td>Within 1.5 m inside</td></tr>
+        <tr><td style="color:#f9c74f">Cleanout — horizontal run</td><td>Every 15 m</td></tr>
+        <tr><td style="color:#f9c74f">Min. house sewer dia.</td><td>150 mm</td></tr>
+        <tr><td style="color:#f9c74f">Building sewer start</td><td>0.60 m from outside wall face</td></tr>
+        <tr><td style="color:#f9c74f">Min. trap seal</td><td>51 mm depth</td></tr>
+        <tr><td style="color:#f9c74f">Max. trap seal</td><td>102 mm depth</td></tr>
+      </table>
+      <table class="def-table" style="color:rgba(255,255,255,0.85)">
+        <tr><td style="color:#f9c74f">Airbreak min.</td><td>25 mm</td></tr>
+        <tr><td style="color:#f9c74f">1 cubic meter</td><td>264 gallons</td></tr>
+        <tr><td style="color:#f9c74f">WC DFU private</td><td>4 (or 6 for septic)</td></tr>
+        <tr><td style="color:#f9c74f">WC DFU public</td><td>6</td></tr>
+        <tr><td style="color:#f9c74f">Min. vent — WC</td><td>51 mm Ø</td></tr>
+        <tr><td style="color:#f9c74f">Min. vent — Lavatory</td><td>32 mm Ø</td></tr>
+        <tr><td style="color:#f9c74f">Disposal field</td><td>&lt; 70 m² (rule of thumb)</td></tr>
+        <tr><td style="color:#f9c74f">WC min. trap dia.</td><td>76 mm (3")</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<script>
+function showChap(id, el) {
+  document.querySelectorAll('.chapter-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.chapter-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
